@@ -3,10 +3,9 @@
 
 #define IKFAST_CLIBRARY
 #define IKFAST_NO_MAIN
-#define IKFAST_NAMESPACE
 
-#include "ik_left_leg_6d.cc"
-#include "ik_right_leg_6d.cc"
+#include <xpp_talos/ikfast_left.h>
+#include <xpp_talos/ikfast_right.h>
 
 namespace xpp {
 
@@ -22,9 +21,9 @@ namespace xpp {
 		switch (leg) {
 			case LEFTLEG:
 				{
-					using namespace IKFAST_NAMESPACE_LEFT;
+					using namespace ikfast_left_leg;
 					// Solution container, stores all possible solutions
-					ikfast_left::IkSolutionList<IkReal> solutions;
+					ikfast::IkSolutionList<IkReal> solutions;
 					// Representation for IK solver
 					IkReal eerot[9], eetrans[3];
 					bool bSuccess = false;
@@ -32,7 +31,7 @@ namespace xpp {
 					eerot[0] = ee_or(0,0); eerot[1] = ee_or(0,1); eerot[2] = ee_or(0,2); eetrans[0] = ee_pos_H.x();
 					eerot[3] = ee_or(1,0); eerot[4] = ee_or(1,1); eerot[5] = ee_or(1,2); eetrans[1] = ee_pos_H.y();
 					eerot[6] = ee_or(2,0); eerot[7] = ee_or(2,1); eerot[8] = ee_or(2,2); eetrans[2] = ee_pos_H.z();
-					bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
+					bSuccess = ikfast_left_leg::ComputeIk(eetrans, eerot, NULL, solutions);
 
 					// Failed to get a solution, return 0 for all joints
 					if( !bSuccess ) {

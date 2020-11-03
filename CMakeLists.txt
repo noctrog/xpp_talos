@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(xpp_talos)
 
+# set(CMAKE_C_COMPILER "/usr/bin/clang")
+# set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
@@ -129,7 +132,10 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_library(${PROJECT_NAME} src/taloslegs_inverse_kinematics.cc)
+add_library(${PROJECT_NAME}
+  src/ik_left_leg_6d.cc
+  src/ik_right_leg_6d.cc
+  src/taloslegs_inverse_kinematics.cc)
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -139,7 +145,7 @@ add_library(${PROJECT_NAME} src/taloslegs_inverse_kinematics.cc)
 # target_link_libraries(urdf_visualizer_talos ${catkin_LIBRARIES})
 add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 target_link_libraries(urdf_visualizer_talos
-  ${PROJECT_NAME}
+  ${PROJECT_NAME} 
   ${catkin_LIBRARIES}
 )
 
