@@ -75,12 +75,21 @@
   <!--************************-->
   <!--        BASE_LINK       -->
   <!--************************-->
-  <link name="base_link">
+  <link name="base_inertia_dummy">
     <inertial>
       <mass value="15.36284"/>
       <inertia ixx="0.20105075811" ixy="0.00023244734" ixz="0.0040167728" iyy="0.08411496729" iyz="-0.00087206649" izz="0.2318908414"/>
       <origin rpy="0 0 0" xyz="-0.05709419 0.00153054 -0.0762521"/>
     </inertial>
+  </link>
+
+  <joint name="dummy_inertia_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0.0 0 0.0"/>
+    <parent link="base_link"/>
+    <child link="base_inertia_dummy"/>
+  </joint>
+
+  <link name="base_link">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
