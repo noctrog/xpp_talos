@@ -7,7 +7,7 @@
 namespace xpp {
 
     /**
-     * @brief Inverse Kinematics for the Talos' legs
+     * @brief Inverse Kinematics for the Talos legs.
      */
     class InverseKinematicsTalos : public InverseKinematics {
         public:
@@ -15,13 +15,13 @@ namespace xpp {
             virtual ~InverseKinematicsTalos() = default;
 
             /**
-             * @brief Returns joint angles to reach for a specific feet position.
-             * @param pos_B  3D-position of the feet expressed in the base frame (B).
+             * @brief Returns joint angles to reach for a specific foot position.
+             * @param pos_B  3D-position of the foot expressed in the base frame (B).
              */
             Joints GetAllJointAngles(const EndeffectorsPos& pos_B) const override;
 
             /**
-             * @brief Number of endeffectors (feet, hands) this implementation expects.
+             * @brief Number of endeffectors (2 feet).
              */
             int GetEECount() const override { return 2; };
 
@@ -29,6 +29,6 @@ namespace xpp {
             TalosLegsInverseKinematics legs;
     };
 
-}
+} /* namespace xpp  */
 
 #endif /* end of include guard: INVERSE_KINEMATICS_TALOS_H_ */

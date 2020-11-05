@@ -133,6 +133,7 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_library(${PROJECT_NAME}
+  src/inverse_kinematics_talos.cc
   src/ik_left_leg_6d.cc
   src/ik_right_leg_6d.cc
   src/taloslegs_inverse_kinematics.cc)

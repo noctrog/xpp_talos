@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <xpp_talos/taloslegs_inverse_kinematics.h>
 #include <xpp_states/cartesian_declarations.h>
 
@@ -7,6 +8,8 @@
 #include <xpp_talos/ikfast_left.h>
 #include <xpp_talos/ikfast_right.h>
 
+const int SOLUTION = 2;
+
 namespace xpp {
 
 	Eigen::VectorXd 
@@ -14,14 +17,41 @@ namespace xpp {
 											   const Vector3d& ee_pos_H,
 											   const Matrix3d& ee_or) const
 	{
-		/* TODO: <02-11-20, Ramón Calvo González> */
-
-		// Final solution q
+		// Joint angles to be calculated
 		Eigen::VectorXd q(6); q.setZero();
+
 		switch (leg) {
 			case LEFTLEG:
 				{
+					// Solution container, stores all possible solutions
 					using namespace ikfast_left_leg;
+					ikfast::IkSolutionList<IkReal> solutions;
+					// Representation for IK solver
+					IkReal eerot[9], eetrans[3];
+					bool bSuccess = false;
+					// Create en effector desired 4x4 matrix (last row is 0 0 0 1 always)
+					eerot[0] = ee_or(0,0); eerot[1] = ee_or(0,1); eerot[2] = ee_or(0,2); eetrans[0] = ee_pos_H.x();
+					eerot[3] = ee_or(1,0); eerot[4] = ee_or(1,1); eerot[5] = ee_or(1,2); eetrans[1] = ee_pos_H.y();
+					eerot[6] = ee_or(2,0); eerot[7] = ee_or(2,1); eerot[8] = ee_or(2,2); eetrans[2] = ee_pos_H.z();
+					bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
+
+					// Failed to get a solution, return 0 for all joints
+					if( !bSuccess ) {
+						fprintf(stderr,"Failed to get ik solution\n");
+						return q;
+					}
+
+					// Pick a solution
+					const ikfast::IkSolutionBase<IkReal>& sol = solutions.GetSolution(SOLUTION);
+					std::vector<IkReal> qv(GetNumJoints());
+					sol.GetSolution(q.data(), NULL);
+
+					return q;
+				}
+				break;
+			case RIGHTLEG:
+				{
+					using namespace ikfast_right_leg;
 					// Solution container, stores all possible solutions
 					ikfast::IkSolutionList<IkReal> solutions;
 					// Representation for IK solver
@@ -31,7 +61,7 @@ namespace xpp {
 					eerot[0] = ee_or(0,0); eerot[1] = ee_or(0,1); eerot[2] = ee_or(0,2); eetrans[0] = ee_pos_H.x();
 					eerot[3] = ee_or(1,0); eerot[4] = ee_or(1,1); eerot[5] = ee_or(1,2); eetrans[1] = ee_pos_H.y();
 					eerot[6] = ee_or(2,0); eerot[7] = ee_or(2,1); eerot[8] = ee_or(2,2); eetrans[2] = ee_pos_H.z();
-					bSuccess = ikfast_left_leg::ComputeIk(eetrans, eerot, NULL, solutions);
+					bSuccess = ComputeIk(eetrans, eerot, NULL, solutions);
 
 					// Failed to get a solution, return 0 for all joints
 					if( !bSuccess ) {
@@ -39,24 +69,18 @@ namespace xpp {
 						return q;
 					}
 
-					// printf("Found %d ik solutions:\n", (int)solutions.GetNumSolutions());
-					// std::vector<IkReal> solvalues(GetNumJoints());
-					// for(std::size_t i = 0; i < solutions.GetNumSolutions(); ++i) {
-					// const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
-					// printf("sol%d (free=%d): ", (int)i, (int)sol.GetFree().size());
-					// std::vector<IkReal> vsolfree(sol.GetFree().size());
-					// sol.GetSolution(&solvalues[0],vsolfree.size()>0?&vsolfree[0]:NULL);
-					// for( std::size_t j = 0; j < solvalues.size(); ++j)
-					// printf("%.15f, ", solvalues[j]);
-					// printf("\n");
-					// }
+					// Pick a solution
+					const ikfast::IkSolutionBase<IkReal>& sol = solutions.GetSolution(SOLUTION);
+					std::vector<IkReal> qv(GetNumJoints());
+					sol.GetSolution(q.data(), NULL);
+
+					return q;
 				}
-				break;
-			case RIGHTLEG:
-				/* TODO: <02-11-20, Ramón Calvo González> */
 				break;
 			default:
 				break;
 		}
+
+		return q;
 	}
 }
