@@ -6,28 +6,28 @@
 
 namespace xpp {
 
+  /**
+   * @brief Inverse Kinematics for the Talos legs.
+   */
+  class InverseKinematicsTalos : public InverseKinematics {
+  public:
+    InverseKinematicsTalos() = default;
+    virtual ~InverseKinematicsTalos() = default;
+
     /**
-     * @brief Inverse Kinematics for the Talos legs.
+     * @brief Returns joint angles to reach for a specific foot position.
+     * @param pos_B  3D-position of the foot expressed in the base frame (B).
      */
-    class InverseKinematicsTalos : public InverseKinematics {
-        public:
-            InverseKinematicsTalos() = default;
-            virtual ~InverseKinematicsTalos() = default;
+    Joints GetAllJointAngles(const EndeffectorsPos& pos_B) const override;
 
-            /**
-             * @brief Returns joint angles to reach for a specific foot position.
-             * @param pos_B  3D-position of the foot expressed in the base frame (B).
-             */
-            Joints GetAllJointAngles(const EndeffectorsPos& pos_B) const override;
+    /**
+     * @brief Number of endeffectors (2 feet).
+     */
+    int GetEECount() const override { return 2; };
 
-            /**
-             * @brief Number of endeffectors (2 feet).
-             */
-            int GetEECount() const override { return 2; };
-
-        private:
-            TalosLegsInverseKinematics legs;
-    };
+  private:
+    TalosLegsInverseKinematics legs;
+  };
 
 } /* namespace xpp  */
 
