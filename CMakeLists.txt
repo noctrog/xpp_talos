@@ -136,7 +136,8 @@ add_library(${PROJECT_NAME}
   src/inverse_kinematics_talos.cc
   src/ik_left_leg_6d.cc
   src/ik_right_leg_6d.cc
-  src/taloslegs_inverse_kinematics.cc)
+  src/taloslegs_inverse_kinematics.cc
+  src/talos_cartesian_joint_converter.cc)
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -144,6 +145,7 @@ add_library(${PROJECT_NAME}
 # add_executable(${PROJECT_NAME}_node src/xpp_talos_node.cpp)
 # add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 # target_link_libraries(urdf_visualizer_talos ${catkin_LIBRARIES})
+
 add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 target_link_libraries(urdf_visualizer_talos
   ${PROJECT_NAME} 
