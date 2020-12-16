@@ -12,6 +12,8 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rosbag
+  trajectory_msgs
   xacro
   xpp_vis
 )
@@ -146,9 +148,17 @@ add_library(${PROJECT_NAME}
 # add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 # target_link_libraries(urdf_visualizer_talos ${catkin_LIBRARIES})
 
-add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
+add_executable(urdf_visualizer_talos
+  src/urdf_visualizer_talos.cc)
 target_link_libraries(urdf_visualizer_talos
   ${PROJECT_NAME} 
+  ${catkin_LIBRARIES}
+)
+
+add_executable(talos_traj_position
+  src/talos_traj_position.cc)
+target_link_libraries(talos_traj_position
+  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
