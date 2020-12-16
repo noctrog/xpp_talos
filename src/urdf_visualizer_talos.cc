@@ -4,7 +4,6 @@
 #include <xpp_talos/inverse_kinematics_talos.h>
 
 #include <xpp_talos/talos_cartesian_joint_converter.h>
-// #include <xpp_vis/cartesian_joint_converter.h>
 #include <xpp_vis/urdf_visualizer.h>
 
 #include <xpp_states/endeffector_mappings.h>
@@ -19,8 +18,6 @@ int main(int argc, char *argv[]) {
   TalosCartesianJointConverter inv_kin_converter(ik,
 						 xpp_msgs::robot_state_desired,
 						 joint_desired_talos);
-  // CartesianJointConverter inv_kin_converter(ik, xpp_msgs::robot_state_desired,
-  // 					    joint_desired_talos);
 
   std::vector<UrdfVisualizer::URDFName> joint_names(12);
   joint_names.at(LL1) = "leg_left_1_joint";
