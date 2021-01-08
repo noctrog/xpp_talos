@@ -38,6 +38,29 @@ Eigen::VectorXd GetJointAngles(const xpp_msgs::RobotStateCartesian::ConstPtr i,
 }
 
 /**
+ * Takes two trajectory msgs and assigns the corresponding joints for
+ * both legs
+ */
+void PrepareTrajMsgs(trajectory_msgs::JointTrajectory &left_msg,
+		     trajectory_msgs::JointTrajectory &right_msg) {
+  left_msg.header.frame_id = "";
+  left_msg.header.stamp = ros::Time::now();
+  right_msg.header = left_msg.header;
+  left_msg.joint_names.emplace_back("leg_left_1_joint");
+  left_msg.joint_names.emplace_back("leg_left_2_joint");
+  left_msg.joint_names.emplace_back("leg_left_3_joint");
+  left_msg.joint_names.emplace_back("leg_left_4_joint");
+  left_msg.joint_names.emplace_back("leg_left_5_joint");
+  left_msg.joint_names.emplace_back("leg_left_6_joint");
+  right_msg.joint_names.emplace_back("leg_right_1_joint");
+  right_msg.joint_names.emplace_back("leg_right_2_joint");
+  right_msg.joint_names.emplace_back("leg_right_3_joint");
+  right_msg.joint_names.emplace_back("leg_right_4_joint");
+  right_msg.joint_names.emplace_back("leg_right_5_joint");
+  right_msg.joint_names.emplace_back("leg_right_6_joint");
+}
+
+/**
  * Takes a ROS bag of optimization results, and generates a
  * trajectory_msgs/JointTrajectory
  */
@@ -70,25 +93,13 @@ int main(int argc, char *argv[]) {
 
   rosbag::View view(bag_r, rosbag::TopicQuery(topics));
 
-  // Prepare trajectory message
+  // Prepare trajectory messages
+  // Move Talos to initial pose
+  trajectory_msgs::JointTrajectory init_traj_left, init_traj_right;
+  PrepareTrajMsgs(init_traj_left, init_traj_right);
+  // Perform movement
   trajectory_msgs::JointTrajectory traj_left, traj_right;
-  traj_left.header.frame_id = "";
-  traj_left.header.stamp = ros::Time::now();
-  traj_right.header = traj_left.header;
-  traj_left.joint_names.emplace_back("leg_left_1_joint");
-  traj_left.joint_names.emplace_back("leg_left_2_joint");
-  traj_left.joint_names.emplace_back("leg_left_3_joint");
-  traj_left.joint_names.emplace_back("leg_left_4_joint");
-  traj_left.joint_names.emplace_back("leg_left_5_joint");
-  traj_left.joint_names.emplace_back("leg_left_6_joint");
-  traj_right.joint_names.emplace_back("leg_right_1_joint");
-  traj_right.joint_names.emplace_back("leg_right_2_joint");
-  traj_right.joint_names.emplace_back("leg_right_3_joint");
-  traj_right.joint_names.emplace_back("leg_right_4_joint");
-  traj_right.joint_names.emplace_back("leg_right_5_joint");
-  traj_right.joint_names.emplace_back("leg_right_6_joint");
-  // traj_left.points.resize(6);
-  // traj_right.points.resize(6);
+  PrepareTrajMsgs(traj_left, traj_right);
 
   // TODO automatically get frecuency
   ROS_INFO_STREAM("Calculating joint positions...");
@@ -116,17 +127,41 @@ int main(int argc, char *argv[]) {
       for (int i = 6; i < q.size(); ++i) {
 	traj_right.points.back().positions.push_back(q[i]);
       }
+
+      // If this is the initial pose, save it in the initialization
+      // trajectory
+      if (current_t == 0) {
+	// Talos initial pose, all zeros
+	init_traj_left.points.emplace_back();
+	init_traj_left.points.back().time_from_start = ros::Duration(0.1);
+        init_traj_left.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	init_traj_right.points.emplace_back();
+	init_traj_right.points.back().time_from_start = ros::Duration(0.1);
+        init_traj_right.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+	// Trajectory initial pose
+	init_traj_left.points.emplace_back(traj_left.points.back());
+        init_traj_right.points.emplace_back(traj_right.points.back());
+	init_traj_left.points.back().time_from_start = ros::Duration(1.0);
+	init_traj_right.points.back().time_from_start = ros::Duration(1.0);
+      }
     }
 
     current_t++;
   }
 
-  // Publicar ambos mensajes
+  // Publish trajectory msgs
   ROS_INFO_STREAM("Publishing messages");
 
-  // Wait for publishers
+  // Wait for publishers to be ready
   ros::Duration(0.2).sleep();
 
+  // Initialize robot
+  pub_l.publish(init_traj_left);
+  pub_r.publish(init_traj_right);
+  ros::Duration(1.5).sleep();
+
+  // Play optimized trajectory
   pub_l.publish(traj_left);
   pub_r.publish(traj_right);
 
