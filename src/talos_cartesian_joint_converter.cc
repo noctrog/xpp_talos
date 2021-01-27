@@ -32,9 +32,20 @@ namespace xpp {
     // B_R_W << 1, 0, 0, 0, 1, 0, 0, 0, 1;
     EndeffectorsPos ee_B(cart.ee_motion_.GetEECount());
     EndeffectorsRot ee_R(cart.ee_motion_.GetEECount());
-    for (auto ee : ee_B.GetEEsOrdered()) {
-      ee_B.at(ee) = B_R_W * (cart.ee_motion_.at(ee).p_ - cart.base_.lin.p_);
-      ee_R.at(ee) = B_R_W;
+
+    auto ee = ee_B.GetEEsOrdered();
+
+    // Check if size is at least 2
+    if (ee.size() < 2) return;
+
+    int j = 0;
+    for (auto ee_id : ee){
+      if (j >= 2) break;
+
+      ee_B.at(ee_id) = B_R_W * (cart.ee_motion_.at(ee_id).p_ - cart.base_.lin.p_);
+      ee_R.at(ee_id) = B_R_W;
+
+      ++j;
     }
 
     Eigen::VectorXd q =  inverse_kinematics_->GetAllJointAngles(ee_B, ee_R).ToVec();
