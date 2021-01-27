@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 # Get URDF filename
-script_dir = os.path.dirname(os.path.realpath(__file__))
+script_dir = os.path.dirname(os.path.realpath("__file__"))
 pinocchio_model_dir = os.path.join(script_dir, "../urdf")
 urdf_filename = pinocchio_model_dir + "/talos_full_legs_v2.urdf"
 
@@ -43,3 +43,11 @@ print('ddq_dv: ' + str(data.ddq_dv))
 print('dtau_dq: ' + str(data.dtau_dq))
 # Muestra las derivadas del torque con respecto a la velocidad articular
 print('dtau_dv: ' + str(data.dtau_dv))
+
+# Muestra el jacobiano del centro de masas
+# pinocchio.computeForwardKinematicsDerivatives(model, data, q, v, a)
+# pinocchio.jacobianCenterOfMass(model, data, q)
+pinocchio.jacobianCenterOfMass(model, data, q)
+print('center of mass jacobian:\n' + str(data.Jcom.T))
+print('center of mass jacobian dimensions: ' + str(data.Jcom.shape))
+
