@@ -45,9 +45,19 @@ print('dtau_dq: ' + str(data.dtau_dq))
 print('dtau_dv: ' + str(data.dtau_dv))
 
 # Muestra el jacobiano del centro de masas
-# pinocchio.computeForwardKinematicsDerivatives(model, data, q, v, a)
-# pinocchio.jacobianCenterOfMass(model, data, q)
+pinocchio.computeForwardKinematicsDerivatives(model, data, q, v, a)
 pinocchio.jacobianCenterOfMass(model, data, q)
 print('center of mass jacobian:\n' + str(data.Jcom.T))
 print('center of mass jacobian dimensions: ' + str(data.Jcom.shape))
+
+# Calcula las derivadas parciales de las velocidades del centro de masas con respecto a q
+print('center of mass vel der:\n' + str(pinocchio.getCenterOfMassVelocityDerivatives(model, data).T))
+
+v[10] = 4
+v[8] = -3
+pinocchio.computeForwardKinematicsDerivatives(model, data, q, v, a)
+pinocchio.centerOfMass(model, data, q, v)
+
+# Calcula las derivadas parciales de las velocidades del centro de masas con respecto a q
+print('center of mass vel der:\n' + str(pinocchio.getCenterOfMassVelocityDerivatives(model, data).T))
 
