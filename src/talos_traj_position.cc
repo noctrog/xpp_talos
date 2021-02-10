@@ -38,28 +38,25 @@ Eigen::VectorXd GetJointAngles(const xpp_msgs::RobotStateCartesian::ConstPtr i,
 }
 
 /**
- * Takes two trajectory msgs and assigns the corresponding joints for
+ * Takes a trajectory msg and assigns the corresponding joints for
  * both legs
  */
-void PrepareTrajMsgs(trajectory_msgs::JointTrajectory &left_msg,
-		     trajectory_msgs::JointTrajectory &right_msg) {
-  left_msg.header.frame_id = "";
-  left_msg.header.stamp = ros::Time::now();
-  right_msg.header = left_msg.header;
-  left_msg.joint_names.emplace_back("leg_left_1_joint");
-  left_msg.joint_names.emplace_back("leg_left_2_joint");
-  left_msg.joint_names.emplace_back("leg_left_3_joint");
-  left_msg.joint_names.emplace_back("leg_left_4_joint");
-  left_msg.joint_names.emplace_back("leg_left_5_joint");
-  left_msg.joint_names.emplace_back("leg_left_6_joint");
-  right_msg.joint_names.emplace_back("leg_right_1_joint");
-  right_msg.joint_names.emplace_back("leg_right_2_joint");
-  right_msg.joint_names.emplace_back("leg_right_3_joint");
-  right_msg.joint_names.emplace_back("leg_right_4_joint");
-  right_msg.joint_names.emplace_back("leg_right_5_joint");
-  right_msg.joint_names.emplace_back("leg_right_6_joint");
+void PrepareTrajMsg(trajectory_msgs::JointTrajectory &msg) {
+  msg.header.frame_id = "";
+  msg.header.stamp = ros::Time::now();
+  msg.joint_names.emplace_back("leg_left_1_joint");
+  msg.joint_names.emplace_back("leg_left_2_joint");
+  msg.joint_names.emplace_back("leg_left_3_joint");
+  msg.joint_names.emplace_back("leg_left_4_joint");
+  msg.joint_names.emplace_back("leg_left_5_joint");
+  msg.joint_names.emplace_back("leg_left_6_joint");
+  msg.joint_names.emplace_back("leg_right_1_joint");
+  msg.joint_names.emplace_back("leg_right_2_joint");
+  msg.joint_names.emplace_back("leg_right_3_joint");
+  msg.joint_names.emplace_back("leg_right_4_joint");
+  msg.joint_names.emplace_back("leg_right_5_joint");
+  msg.joint_names.emplace_back("leg_right_6_joint");
 }
-
 /**
  * Takes a ROS bag of optimization results, and generates a
  * trajectory_msgs/JointTrajectory
@@ -68,8 +65,13 @@ int main(int argc, char *argv[]) {
   ros::init(argc, argv, "rosbag_trajectory_player");
   ros::NodeHandle nh;
 
-  auto pub_l = nh.advertise<trajectory_msgs::JointTrajectory>("/left_leg_controller/command", 100);
-  auto pub_r = nh.advertise<trajectory_msgs::JointTrajectory>("/right_leg_controller/command", 100);
+  // auto pub_l =
+  // nh.advertise<trajectory_msgs::JointTrajectory>("/left_leg_controller/command",
+  // 100); auto pub_r =
+  // nh.advertise<trajectory_msgs::JointTrajectory>("/right_leg_controller/command",
+  // 100);
+  auto pub = nh.advertise<trajectory_msgs::JointTrajectory>(
+      "/talos_trajectory_wbc_controller/command", 100);
 
   // Get bag file, if not specified, use towr default bag
   std::string name;
@@ -95,11 +97,11 @@ int main(int argc, char *argv[]) {
 
   // Prepare trajectory messages
   // Move Talos to initial pose
-  trajectory_msgs::JointTrajectory init_traj_left, init_traj_right;
-  PrepareTrajMsgs(init_traj_left, init_traj_right);
+  trajectory_msgs::JointTrajectory init_traj;
+  PrepareTrajMsg(init_traj);
   // Perform movement
-  trajectory_msgs::JointTrajectory traj_left, traj_right;
-  PrepareTrajMsgs(traj_left, traj_right);
+  trajectory_msgs::JointTrajectory traj;
+  PrepareTrajMsg(traj);
 
   // TODO automatically get frecuency
   ROS_INFO_STREAM("Calculating joint positions...");
@@ -115,35 +117,26 @@ int main(int argc, char *argv[]) {
 
       // Calculate corresponding time for position
       double time = current_t * 0.01;
-      traj_left.points.emplace_back();
-      traj_right.points.emplace_back();
-      traj_left.points.back().time_from_start = ros::Duration(time);
-      traj_right.points.back().time_from_start = ros::Duration(time);
+      traj.points.emplace_back();
+      traj.points.back().time_from_start = ros::Duration(time);
       // Add values to JointTrajectory
-      for (int i = 0; i < 6; ++i) {
+      for (int i = 0; i < 12; ++i) {
 	// Positions
-	traj_left.points.back().positions.push_back(q[i]);
-      }
-      for (int i = 6; i < q.size(); ++i) {
-	traj_right.points.back().positions.push_back(q[i]);
+	traj.points.back().positions.push_back(q[i]);
       }
 
       // If this is the initial pose, save it in the initialization
       // trajectory
       if (current_t == 0) {
 	// Talos initial pose, all zeros
-	init_traj_left.points.emplace_back();
-	init_traj_left.points.back().time_from_start = ros::Duration(0.1);
-        init_traj_left.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	init_traj_right.points.emplace_back();
-	init_traj_right.points.back().time_from_start = ros::Duration(0.1);
-        init_traj_right.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	init_traj.points.emplace_back();
+	init_traj.points.back().time_from_start = ros::Duration(0.1);
+	init_traj.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+					     0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	// Trajectory initial pose
-	init_traj_left.points.emplace_back(traj_left.points.back());
-        init_traj_right.points.emplace_back(traj_right.points.back());
-	init_traj_left.points.back().time_from_start = ros::Duration(1.0);
-	init_traj_right.points.back().time_from_start = ros::Duration(1.0);
+	init_traj.points.emplace_back(traj.points.back());
+	init_traj.points.back().time_from_start = ros::Duration(1.0);
       }
     }
 
@@ -157,13 +150,11 @@ int main(int argc, char *argv[]) {
   ros::Duration(0.2).sleep();
 
   // Initialize robot
-  pub_l.publish(init_traj_left);
-  pub_r.publish(init_traj_right);
+  pub.publish(init_traj);
   ros::Duration(1.5).sleep();
 
   // Play optimized trajectory
-  pub_l.publish(traj_left);
-  pub_r.publish(traj_right);
+  pub.publish(traj);
 
   ros::spinOnce();
 
