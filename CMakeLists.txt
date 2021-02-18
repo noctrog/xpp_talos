@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   xacro
   xpp_vis
+  talos_wbc_controller
 )
 
 ## System dependencies are found with CMake's conventions
@@ -148,19 +149,19 @@ add_library(${PROJECT_NAME}
 # add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 # target_link_libraries(urdf_visualizer_talos ${catkin_LIBRARIES})
 
-add_executable(urdf_visualizer_talos
-  src/urdf_visualizer_talos.cc)
+add_executable(urdf_visualizer_talos src/urdf_visualizer_talos.cc)
 target_link_libraries(urdf_visualizer_talos
-  ${PROJECT_NAME} 
-  ${catkin_LIBRARIES}
+  ${PROJECT_NAME} ${catkin_LIBRARIES}
 )
 
-add_executable(talos_traj_position
-  src/talos_traj_position.cc)
+add_executable(talos_traj_position src/talos_traj_position.cc)
 target_link_libraries(talos_traj_position
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
+  ${PROJECT_NAME} ${catkin_LIBRARIES}
 )
+
+add_executable(talos_contact_traj src/talos_contact_traj.cc)
+target_link_libraries(talos_contact_traj
+  ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

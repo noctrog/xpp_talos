@@ -14,6 +14,7 @@
   <build_depend>xacro</build_depend>
   <build_depend>xpp_vis</build_depend>
   <build_depend>rosbag</build_depend>
+  <build_depend>talos_wbc_controller</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>xacro</build_export_depend>
@@ -21,7 +22,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>xacro</exec_depend>
   <exec_depend>xpp_vis</exec_depend>
-
+  <exec_depend>talos_wbc_controller</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
