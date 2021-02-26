@@ -70,22 +70,24 @@ void PrepareTrajMsg(talos_wbc_controller::JointContactTrajectory &msg) {
   msg.header.stamp = ros::Time::now();
 
   // Ordinary trajectory names
-  msg.trajectory.joint_names.emplace_back("leg_left_1_joint");
-  msg.trajectory.joint_names.emplace_back("leg_left_2_joint");
-  msg.trajectory.joint_names.emplace_back("leg_left_3_joint");
-  msg.trajectory.joint_names.emplace_back("leg_left_4_joint");
-  msg.trajectory.joint_names.emplace_back("leg_left_5_joint");
-  msg.trajectory.joint_names.emplace_back("leg_left_6_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_1_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_2_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_3_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_4_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_5_joint");
-  msg.trajectory.joint_names.emplace_back("leg_right_6_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_1_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_2_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_3_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_4_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_5_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_6_joint");
+  msg.trajectory.joint_names.emplace_back("arm_left_7_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_1_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_2_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_3_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_4_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_5_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_6_joint");
+  msg.trajectory.joint_names.emplace_back("arm_right_7_joint");
 
   // Contact names
-  msg.contact_link_names.emplace_back("leg_left_6_link");
-  msg.contact_link_names.emplace_back("leg_right_6_link");
+  msg.contact_link_names.emplace_back("arm_left_7_link");
+  msg.contact_link_names.emplace_back("arm_right_7_link");
 }
 
 /**
@@ -146,7 +148,7 @@ int main(int argc, char *argv[]) {
       traj.trajectory.points.emplace_back();
       traj.trajectory.points.back().time_from_start = ros::Duration(time);
       // Add values to JointTrajectory
-      for (int i = 0; i < 12; ++i) {
+      for (int i = 0; i < 14; ++i) {
 	// Positions
 	traj.trajectory.points.back().positions.push_back(q[i]);
       }
@@ -166,8 +168,8 @@ int main(int argc, char *argv[]) {
 	// Talos initial pose, all zeros
 	init_traj.trajectory.points.emplace_back();
 	init_traj.trajectory.points.back().time_from_start = ros::Duration(0.1);
-	init_traj.trajectory.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-					     0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	init_traj.trajectory.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+	                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 	// Trajectory initial pose
 	init_traj.trajectory.points.emplace_back(traj.trajectory.points.back());
