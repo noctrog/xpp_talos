@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   xacro
   xpp_vis
   talos_wbc_controller
+  kdl_parser
 )
 
 ## System dependencies are found with CMake's conventions
@@ -137,9 +138,6 @@ include_directories(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_library(${PROJECT_NAME}
   src/inverse_kinematics_talos.cc
-  src/ik_left_leg_6d.cc
-  src/ik_right_leg_6d.cc
-  src/taloslegs_inverse_kinematics.cc
   src/talos_cartesian_joint_converter.cc)
 
 ## Declare a C++ executable
