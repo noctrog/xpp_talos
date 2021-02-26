@@ -46,13 +46,13 @@ namespace xpp {
     right_arm_ik_vel_.reset(new KDL::ChainIkSolverVel_pinv(right_arm_chain_));
     // Position IK - Max 100 iterations, stop at an accuracy of 10e-6
     left_arm_ik_pos_.reset(new KDL::ChainIkSolverPos_NR(left_arm_chain_, *left_arm_fk_pos_,
-							*left_arm_ik_vel_, 1000, 100)); 
+							*left_arm_ik_vel_, 100, 1e-6)); 
     right_arm_ik_pos_.reset(new KDL::ChainIkSolverPos_NR(right_arm_chain_, *right_arm_fk_pos_,
-							*right_arm_ik_vel_, 1000, 100)); 
+							*right_arm_ik_vel_, 1000, 1e-6)); 
 
     // Initialize the estimations of the arm positions
-    left_arm_last_pos_ = KDL::JntArray(left_arm_chain_.getNrOfJoints());
-    right_arm_last_pos_ = KDL::JntArray(right_arm_chain_.getNrOfJoints());
+    left_arm_last_pos_.reset(new KDL::JntArray(left_arm_chain_.getNrOfJoints()));
+    right_arm_last_pos_.reset(new KDL::JntArray(right_arm_chain_.getNrOfJoints()));
   }
 
   Joints 
@@ -71,25 +71,31 @@ namespace xpp {
 					 x_biped_B.at(L).z()));
     KDL::JntArray left_q_result(left_arm_chain_.getNrOfJoints());
 
-    if (not left_arm_ik_pos_->CartToJnt(left_arm_last_pos_, left_ee_frame, left_q_result)) {
+    if (not left_arm_ik_pos_->CartToJnt(*left_arm_last_pos_, left_ee_frame, left_q_result)) {
       ROS_ERROR("Failed to compute the IK of the left arm!");
-      q_vec.push_back(Eigen::VectorXd::Zero(left_arm_chain_.getNrOfJoints()));
+      // q_vec.push_back(Eigen::VectorXd::Zero(left_arm_chain_.getNrOfJoints()));
+      q_vec.push_back(left_q_result.data);
     } else {
       q_vec.push_back(left_q_result.data);
     }
     
+    *left_arm_last_pos_ = left_q_result;
+
     // Right arm inverse kinematics
     KDL::Frame right_ee_frame(KDL::Vector(x_biped_B.at(R).x(),
 					  x_biped_B.at(R).y(),
 					  x_biped_B.at(R).z()));
     KDL::JntArray right_q_result(right_arm_chain_.getNrOfJoints());
 
-    if (not right_arm_ik_pos_->CartToJnt(right_arm_last_pos_, right_ee_frame, right_q_result)) {
+    if (not right_arm_ik_pos_->CartToJnt(*right_arm_last_pos_, right_ee_frame, right_q_result)) {
       ROS_ERROR("Failed to compute the IK of the right arm!");
-      q_vec.push_back(Eigen::VectorXd::Zero(right_arm_chain_.getNrOfJoints()));
+      // q_vec.push_back(Eigen::VectorXd::Zero(right_arm_chain_.getNrOfJoints()));
+      q_vec.push_back(right_q_result.data);
     } else {
       q_vec.push_back(right_q_result.data);
     }
+
+    *right_arm_last_pos_ = right_q_result;
 
     Joints a(q_vec);
     return Joints(q_vec);

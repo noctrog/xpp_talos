@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 						 xpp_msgs::robot_state_desired,
 						 joint_desired_talos);
 
-  std::vector<UrdfVisualizer::URDFName> joint_names(12);
+  std::vector<UrdfVisualizer::URDFName> joint_names(14);
   joint_names.at(AL1) = "arm_left_1_joint";
   joint_names.at(AL2) = "arm_left_2_joint";
   joint_names.at(AL3) = "arm_left_3_joint";

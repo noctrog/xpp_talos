@@ -69,7 +69,8 @@ namespace xpp {
     IkSolverAccPtr left_arm_ik_acc_, right_arm_ik_acc_;
 
     // Last solved positions, used for warm starting the ik solver
-    KDL::JntArray left_arm_last_pos_, right_arm_last_pos_;
+    typedef std::unique_ptr<KDL::JntArray> JntArrayPtr;
+    JntArrayPtr left_arm_last_pos_, right_arm_last_pos_;
   };
 
 } /* namespace xpp  */
