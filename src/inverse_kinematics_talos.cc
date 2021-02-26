@@ -73,7 +73,7 @@ namespace xpp {
 
     if (not left_arm_ik_pos_->CartToJnt(left_arm_last_pos_, left_ee_frame, left_q_result)) {
       ROS_ERROR("Failed to compute the IK of the left arm!");
-      exit(-1);
+      q_vec.push_back(Eigen::VectorXd::Zero(left_arm_chain_.getNrOfJoints()));
     } else {
       q_vec.push_back(left_q_result.data);
     }
@@ -86,7 +86,7 @@ namespace xpp {
 
     if (not right_arm_ik_pos_->CartToJnt(right_arm_last_pos_, right_ee_frame, right_q_result)) {
       ROS_ERROR("Failed to compute the IK of the right arm!");
-      exit(-1);
+      q_vec.push_back(Eigen::VectorXd::Zero(right_arm_chain_.getNrOfJoints()));
     } else {
       q_vec.push_back(right_q_result.data);
     }
