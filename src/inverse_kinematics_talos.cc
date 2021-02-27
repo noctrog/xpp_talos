@@ -44,15 +44,20 @@ namespace xpp {
     // Velocity IK
     left_arm_ik_vel_.reset(new KDL::ChainIkSolverVel_pinv(left_arm_chain_));
     right_arm_ik_vel_.reset(new KDL::ChainIkSolverVel_pinv(right_arm_chain_));
-    // Position IK - Max 100 iterations, stop at an accuracy of 10e-6
+    // Position IK - Max 100 iterations, stop at an accuracy of 10e-5
     left_arm_ik_pos_.reset(new KDL::ChainIkSolverPos_NR(left_arm_chain_, *left_arm_fk_pos_,
-							*left_arm_ik_vel_, 100, 1e-6)); 
+							*left_arm_ik_vel_, 100, 1e-5)); 
     right_arm_ik_pos_.reset(new KDL::ChainIkSolverPos_NR(right_arm_chain_, *right_arm_fk_pos_,
-							*right_arm_ik_vel_, 1000, 1e-6)); 
+							*right_arm_ik_vel_, 1000, 1e-5)); 
 
     // Initialize the estimations of the arm positions
     left_arm_last_pos_.reset(new KDL::JntArray(left_arm_chain_.getNrOfJoints()));
     right_arm_last_pos_.reset(new KDL::JntArray(right_arm_chain_.getNrOfJoints()));
+    // Initialize initial guess to a known position
+    left_arm_last_pos_->data(1) =  M_PI / 4.0;
+    left_arm_last_pos_->data(3) = -M_PI / 2.0;
+    right_arm_last_pos_->data(1) = -M_PI / 4.0;
+    right_arm_last_pos_->data(3) = -M_PI / 2.0;
   }
 
   Joints 
