@@ -71,9 +71,12 @@ namespace xpp {
     x_biped_B.resize(2, x_biped_B.front());
 
     // Left arm inverse kinematics
-    KDL::Frame left_ee_frame(KDL::Vector(x_biped_B.at(L).x(),
-					 x_biped_B.at(L).y(),
-					 x_biped_B.at(L).z()));
+    KDL::Vector left_ee_vector(x_biped_B.at(L).x(), x_biped_B.at(L).y(), x_biped_B.at(L).z());
+    KDL::Rotation left_ee_rotation(KDL::Vector( 0.0, 0.0, 1.0),
+				   KDL::Vector( 0.0, 1.0, 0.0),
+				   KDL::Vector(-1.0, 0.0, 0.0));
+    KDL::Frame left_ee_frame(left_ee_rotation, left_ee_vector);
+
     KDL::JntArray left_q_result(left_arm_chain_.getNrOfJoints());
 
     if (not left_arm_ik_pos_->CartToJnt(*left_arm_last_pos_, left_ee_frame, left_q_result)) {
@@ -87,9 +90,11 @@ namespace xpp {
     *left_arm_last_pos_ = left_q_result;
 
     // Right arm inverse kinematics
-    KDL::Frame right_ee_frame(KDL::Vector(x_biped_B.at(R).x(),
-					  x_biped_B.at(R).y(),
-					  x_biped_B.at(R).z()));
+    KDL::Vector right_ee_vector(x_biped_B.at(R).x(), x_biped_B.at(R).y(), x_biped_B.at(R).z());
+    KDL::Rotation right_ee_rotation(KDL::Vector( 0.0, 0.0, 1.0),
+				   KDL::Vector( 0.0, 1.0, 0.0),
+				   KDL::Vector(-1.0, 0.0, 0.0));
+    KDL::Frame right_ee_frame(right_ee_rotation, right_ee_vector);
     KDL::JntArray right_q_result(right_arm_chain_.getNrOfJoints());
 
     if (not right_arm_ik_pos_->CartToJnt(*right_arm_last_pos_, right_ee_frame, right_q_result)) {
