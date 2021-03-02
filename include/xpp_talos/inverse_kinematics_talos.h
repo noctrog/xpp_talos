@@ -61,6 +61,15 @@ namespace xpp {
     int GetEECount() const override { return 2; };
 
   private:
+
+    Eigen::MatrixXd
+    ComputeFrameJacobian(Eigen::VectorXd q, int id) const;
+
+    Eigen::MatrixXd
+    ComputeFrameJacobianTimeDerivative(Eigen::VectorXd q,
+				       Eigen::VectorXd qd,
+				       int id) const;
+    
     TalosLegsInverseKinematics legs;
 
     typedef pinocchio::Model Model;
@@ -69,6 +78,8 @@ namespace xpp {
     typedef std::shared_ptr<Data> DataPtr;
     ModelPtr talos_model_;
     DataPtr talos_data_;
+
+    int left_sole_id, right_sole_id;
   };
 
 } /* namespace xpp  */
