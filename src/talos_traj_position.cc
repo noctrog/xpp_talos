@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <xpp_talos/inverse_kinematics_talos.h>
+
 #include <ros/ros.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -11,8 +13,6 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <xpp_msgs/RobotStateCartesian.h>
 #include <xpp_states/convert.h>
-
-#include <xpp_talos/inverse_kinematics_talos.h>
 
 /**
  * Takes a RobotStateCartesian and calculates the inverse kinematics

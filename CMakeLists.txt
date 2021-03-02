@@ -1,11 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(xpp_talos)
 
-# set(CMAKE_C_COMPILER "/usr/bin/clang")
-# set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+# add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,6 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   xpp_vis
   talos_wbc_controller
 )
+
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(Eigen3 REQUIRED)
+find_package(pinocchio REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -109,7 +110,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
+  DEPENDS Boost
 #  LIBRARIES xpp_talos
 #  CATKIN_DEPENDS roscpp xacro xpp_vis
 #  DEPENDS system_lib
@@ -141,6 +143,7 @@ add_library(${PROJECT_NAME}
   src/ik_right_leg_6d.cc
   src/taloslegs_inverse_kinematics.cc
   src/talos_cartesian_joint_converter.cc)
+target_link_libraries(${PROJECT_NAME} ${pinocchio_LIBRARIES} ${catkin_LIBRARIES})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context

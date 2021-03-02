@@ -1,12 +1,12 @@
-#include <ros/ros.h>
-
-#include <xpp_msgs/topic_names.h>
 #include <xpp_talos/inverse_kinematics_talos.h>
+#include <xpp_msgs/topic_names.h>
 
 #include <xpp_talos/talos_cartesian_joint_converter.h>
 #include <xpp_vis/urdf_visualizer.h>
 
 #include <xpp_states/endeffector_mappings.h>
+
+#include <ros/ros.h>
 
 using namespace xpp;
 

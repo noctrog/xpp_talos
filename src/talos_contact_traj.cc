@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <xpp_talos/inverse_kinematics_talos.h>
+
 #include <ros/ros.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -11,7 +13,6 @@
 #include <xpp_msgs/RobotStateCartesian.h>
 #include <xpp_states/convert.h>
 
-#include <xpp_talos/inverse_kinematics_talos.h>
 
 #include <talos_wbc_controller/JointContactTrajectory.h>
 #include <talos_wbc_controller/JointContactTrajectoryContacts.h>
