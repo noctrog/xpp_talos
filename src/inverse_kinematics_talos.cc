@@ -179,4 +179,31 @@ namespace xpp {
     return dJ;
   }
 
+  Joints InverseKinematicsTalos::GetAllJointVelocities(const EndeffectorsVel &vel_B,
+			       const Eigen::VectorXd &q) const
+  {
+    std::vector<Eigen::VectorXd> pos;
+    pos.emplace_back(q.head<6>());
+    pos.emplace_back(q.tail<6>());
+    Joints joint_positions(pos);
+    return GetAllJointVelocities(vel_B, joint_positions);
+  }
+
+  Joints InverseKinematicsTalos::GetAllJointAccelerations(const EndeffectorsAcc &acc_B,
+				  const Eigen::VectorXd &q,
+                                  const Eigen::VectorXd &qd) const
+  {
+    std::vector<Eigen::VectorXd> pos;
+    pos.emplace_back(q.head<6>());
+    pos.emplace_back(q.tail<6>());
+    Joints joint_positions(pos);
+
+    std::vector<Eigen::VectorXd> vel;
+    vel.emplace_back(qd.head<6>());
+    vel.emplace_back(qd.tail<6>());
+    Joints joint_velocities(vel);
+
+    return GetAllJointAccelerations(acc_B, joint_positions, joint_velocities);
+  }
+
 } /* namespace xpp */

@@ -55,6 +55,24 @@ namespace xpp {
     Joints GetAllJointAccelerations(const EndeffectorsAcc &acc_B,
 				    const Joints &pos_j,
 				    const Joints &vel_j) const;
+
+    /**
+     * @brief Return joint velocities.
+     * @param vel_B  3D-velocity of the foot expressed in the base frame (B)
+     * @param q  Current positions for every joint.
+     */
+    Joints GetAllJointVelocities(const EndeffectorsVel &vel_B,
+				 const Eigen::VectorXd &q) const;
+
+    /**
+     * @brief Return joint velocities.
+     * @param acc_B  3D-acceleration of the foot expressed in the base frame (B)
+     * @param q  Current positions for every joint.
+     * @param qd  Current velocities for every joint.
+     */
+    Joints GetAllJointAccelerations(const EndeffectorsAcc &acc_B,
+				    const Eigen::VectorXd &q,
+				    const Eigen::VectorXd &qd) const;
     /**
      * @brief Number of endeffectors (2 feet).
      */
