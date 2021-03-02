@@ -30,15 +30,22 @@ Eigen::VectorXd GetJointAngles(const xpp_msgs::RobotStateCartesian::ConstPtr i,
   // transform feet from world -> base frame
   Eigen::Matrix3d B_R_W =
       cart.base_.ang.q.normalized().toRotationMatrix().inverse();
-  xpp::EndeffectorsPos ee_B(cart.ee_motion_.GetEECount());
+  xpp::EndeffectorsPos ee_B_pos(cart.ee_motion_.GetEECount());
+  xpp::EndeffectorsPos ee_B_vel(cart.ee_motion_.GetEECount());
+  xpp::EndeffectorsPos ee_B_acc(cart.ee_motion_.GetEECount());
   xpp::EndeffectorsRot ee_R(cart.ee_motion_.GetEECount());
-  for (auto ee : ee_B.GetEEsOrdered()) {
-    ee_B.at(ee) = B_R_W * (cart.ee_motion_.at(ee).p_ - cart.base_.lin.p_);
+  for (auto ee : ee_B_pos.GetEEsOrdered()) {
+    ee_B_pos.at(ee) = B_R_W * (cart.ee_motion_.at(ee).p_ - cart.base_.lin.p_);
+    ee_B_vel.at(ee) = B_R_W * (cart.ee_motion_.at(ee).v_ - cart.base_.lin.v_);
+    ee_B_acc.at(ee) = B_R_W * (cart.ee_motion_.at(ee).a_ - cart.base_.lin.a_);
     ee_R.at(ee) = B_R_W;
   }
 
-  Eigen::VectorXd q = ik.GetAllJointAngles(ee_B, ee_R).ToVec();
+  Eigen::VectorXd q   = ik.GetAllJointAngles(ee_B_pos, ee_R).ToVec();
+  Eigen::VectorXd qd  = ik.GetAllJointVelocities(ee_B_vel, q).ToVec();
+  Eigen::VectorXd qdd = ik.GetAllJointAccelerations(ee_B_acc, q, qd).ToVec();
 
+  // TODO: Return qd and qdd also!!!
   return q;
 }
 
