@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   talos_wbc_controller
 )
 
-find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
 
@@ -111,7 +110,6 @@ find_package(pinocchio REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  DEPENDS Boost
 #  LIBRARIES xpp_talos
 #  CATKIN_DEPENDS roscpp xacro xpp_vis
 #  DEPENDS system_lib
