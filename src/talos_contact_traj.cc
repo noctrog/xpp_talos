@@ -92,8 +92,8 @@ void PrepareTrajMsg(talos_wbc_controller::JointContactTrajectory &msg) {
   msg.trajectory.joint_names.emplace_back("leg_right_6_joint");
 
   // Contact names
-  msg.contact_link_names.emplace_back("leg_left_6_link");
-  msg.contact_link_names.emplace_back("leg_right_6_link");
+  msg.contact_link_names.emplace_back("left_sole_link");
+  msg.contact_link_names.emplace_back("right_sole_link");
 }
 
 /**
