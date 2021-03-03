@@ -84,9 +84,10 @@ namespace xpp {
 			       const Joints &pos_j) const
   {
     // Retrieve the end effectors velocities (towr does not calculate orientations)
-    Eigen::VectorXd left_sole_vel, right_sole_vel;
-    left_sole_vel << vel_B.at(0), Eigen::VectorXd::Zero(3);
-    right_sole_vel << vel_B.at(1), Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd left_sole_vel(6), right_sole_vel(6);
+    left_sole_vel.setZero(); right_sole_vel.setZero();
+    left_sole_vel.head(3) << vel_B.at(0);
+    right_sole_vel.head(3) << vel_B.at(1);
 
     // Retrieve the current robot state (spatial position)
     // XYZRPY of the base link do not matter
@@ -116,9 +117,10 @@ namespace xpp {
 						   const Joints &vel_j) const
   {
     // Retrieve the end effector accelerations (towr does not calculate orientations)
-    Eigen::VectorXd left_sole_acc, right_sole_acc;
-    left_sole_acc << acc_B.at(0), Eigen::VectorXd::Zero(3);
-    right_sole_acc << acc_B.at(0), Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd left_sole_acc(6), right_sole_acc(6);
+    left_sole_acc.setZero(); right_sole_acc.setZero();
+    left_sole_acc.head(3) << acc_B.at(0);
+    right_sole_acc.head(3) << acc_B.at(1);
 
     // Retrieve the current robot state (spatial position and velocity)
     // TODO: XYZRPY velocities matter!!!!!!
