@@ -23,8 +23,11 @@ typedef typename std::vector<bool> CurrentContacts;
  * Takes a RobotStateCartesian and calculates the inverse kinematics
  * for the Talos robot
  */
-Eigen::VectorXd GetJointAngles(const xpp_msgs::RobotStateCartesian::ConstPtr i,
-			       const xpp::InverseKinematicsTalos &ik) {
+void GetJointStates(const xpp_msgs::RobotStateCartesian::ConstPtr i,
+		    const xpp::InverseKinematicsTalos &ik,
+		    Eigen::VectorXd& q,
+		    Eigen::VectorXd& qd,
+		    Eigen::VectorXd& qdd) {
   auto cart = xpp::Convert::ToXpp(*i);
 
   // transform feet from world -> base frame
@@ -41,12 +44,9 @@ Eigen::VectorXd GetJointAngles(const xpp_msgs::RobotStateCartesian::ConstPtr i,
     ee_R.at(ee) = B_R_W;
   }
 
-  Eigen::VectorXd q   = ik.GetAllJointAngles(ee_B_pos, ee_R).ToVec();
-  Eigen::VectorXd qd  = ik.GetAllJointVelocities(ee_B_vel, q).ToVec();
-  Eigen::VectorXd qdd = ik.GetAllJointAccelerations(ee_B_acc, q, qd).ToVec();
-
-  // TODO: Return qd and qdd also!!!
-  return q;
+  q   = ik.GetAllJointAngles(ee_B_pos, ee_R).ToVec();
+  qd  = ik.GetAllJointVelocities(ee_B_vel, q).ToVec();
+  qdd = ik.GetAllJointAccelerations(ee_B_acc, q, qd).ToVec();
 }
 
 /** 
@@ -147,7 +147,8 @@ int main(int argc, char *argv[]) {
 
     if (i) {
       // Perform inverse kinematics
-      Eigen::VectorXd q = GetJointAngles(i, ik);
+      Eigen::VectorXd q, qd, qdd;
+      GetJointStates(i, ik, q, qd, qdd);
 
       // Calculate corresponding time for position
       double time = current_t * 0.01;
@@ -155,8 +156,9 @@ int main(int argc, char *argv[]) {
       traj.trajectory.points.back().time_from_start = ros::Duration(time);
       // Add values to JointTrajectory
       for (int i = 0; i < 12; ++i) {
-	// Positions
 	traj.trajectory.points.back().positions.push_back(q[i]);
+	traj.trajectory.points.back().velocities.push_back(qd[i]);
+	traj.trajectory.points.back().accelerations.push_back(qdd[i]);
       }
 
       // Add values to the contact sequence
