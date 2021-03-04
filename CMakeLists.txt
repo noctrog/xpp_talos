@@ -109,7 +109,7 @@ find_package(pinocchio REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES xpp_talos
 #  CATKIN_DEPENDS roscpp xacro xpp_vis
 #  DEPENDS system_lib
@@ -123,6 +123,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
+  ${pinocchio_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -141,7 +142,7 @@ add_library(${PROJECT_NAME}
   src/ik_right_leg_6d.cc
   src/taloslegs_inverse_kinematics.cc
   src/talos_cartesian_joint_converter.cc)
-target_link_libraries(${PROJECT_NAME} ${pinocchio_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} pinocchio::pinocchio ${catkin_LIBRARIES})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
