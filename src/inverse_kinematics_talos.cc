@@ -3,6 +3,8 @@
 
 #include <pinocchio/parsers/urdf.hpp>
 #include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/algorithm/kinematics-derivatives.hpp>
 #include <xpp_talos/inverse_kinematics_talos.h>
 
 #include <xpp_states/endeffector_mappings.h>
@@ -34,8 +36,8 @@ namespace xpp {
     // Initialize pinocchio model data
     *talos_data_ = pinocchio::Data(*talos_model_);
 
-    left_sole_id = talos_model_->getJointId("left_sole_link");
-    right_sole_id = talos_model_->getJointId("right_sole_link");
+    left_sole_id = talos_model_->getFrameId("left_sole_link");
+    right_sole_id = talos_model_->getFrameId("right_sole_link");
   }
 
   Joints 
@@ -91,17 +93,21 @@ namespace xpp {
 
     // Retrieve the current robot state (spatial position)
     // XYZRPY of the base link do not matter
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(6 + pos_j.GetNumJoints());
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(7 + pos_j.GetNumJoints());
     for (size_t i = 0; i < pos_j.GetNumJoints(); ++i)
-      q(6+i) = pos_j.GetJoint(i);
+      q(7+i) = pos_j.GetJoint(i);
+
+    // Perform the necessary precalculations for the Jacobians
+    pinocchio::computeJointJacobians(*talos_model_, *talos_data_, q);
+    pinocchio::framesForwardKinematics(*talos_model_, *talos_data_, q);
 
     // Compute contact Jacobians
-    Eigen::MatrixXd J_left_sole = ComputeFrameJacobian(q, left_sole_id);
-    Eigen::MatrixXd J_right_sole = ComputeFrameJacobian(q, right_sole_id);
+    Eigen::MatrixXd J_left_sole = GetFrameJacobian(left_sole_id);
+    Eigen::MatrixXd J_right_sole = GetFrameJacobian(right_sole_id);
 
     // Slice to obtain the Jacobian for each kinematic cheain (each leg)
     Eigen::MatrixXd J_left_slice = J_left_sole.block(0, 6, 6, 6);
-    Eigen::MatrixXd J_right_slice = J_left_sole.block(0, 12, 6, 6);
+    Eigen::MatrixXd J_right_slice = J_right_sole.block(0, 12, 6, 6);
 
     // Compute velocities: qd = Jinv * v
     std::vector<Eigen::VectorXd> joint_velocities;
@@ -124,18 +130,22 @@ namespace xpp {
 
     // Retrieve the current robot state (spatial position and velocity)
     // TODO: XYZRPY velocities matter!!!!!!
-    Eigen::VectorXd q  = Eigen::VectorXd::Zero(6 + pos_j.GetNumJoints());
+    Eigen::VectorXd q  = Eigen::VectorXd::Zero(7 + pos_j.GetNumJoints());
     Eigen::VectorXd qd = Eigen::VectorXd::Zero(6 + vel_j.GetNumJoints());
     for (size_t i = 0; i < pos_j.GetNumJoints(); ++i) {
-      q(6+i)  = pos_j.GetJoint(i);
+      q(7+i)  = pos_j.GetJoint(i);
       qd(6+i) = vel_j.GetJoint(i);
     }
 
+    // Perform the necessary precalculations
+    pinocchio::computeJointJacobiansTimeVariation(*talos_model_, *talos_data_, q, qd);
+    pinocchio::framesForwardKinematics(*talos_model_, *talos_data_, q);
+
     // Compute all the jacobians needed and slice
-    Eigen::MatrixXd J_left = ComputeFrameJacobian(q, left_sole_id).block(0, 6, 6, 6);
-    Eigen::MatrixXd J_right = ComputeFrameJacobian(q, right_sole_id).block(0, 12, 6, 6);
-    Eigen::MatrixXd dJ_left = ComputeFrameJacobianTimeDerivative(q, qd, left_sole_id).block(0, 6, 6, 6);
-    Eigen::MatrixXd dJ_right = ComputeFrameJacobianTimeDerivative(q, qd, right_sole_id).block(0, 12, 6, 6);
+    Eigen::MatrixXd J_left = GetFrameJacobian(left_sole_id).block(0, 6, 6, 6);
+    Eigen::MatrixXd J_right = GetFrameJacobian(right_sole_id).block(0, 12, 6, 6);
+    Eigen::MatrixXd dJ_left = GetFrameJacobianTimeDerivative(left_sole_id).block(0, 6, 6, 6);
+    Eigen::MatrixXd dJ_right = GetFrameJacobianTimeDerivative(right_sole_id).block(0, 12, 6, 6);
 
     // Compute the joint acceleration: qdd = Jinv * (a - Jd * qd)
     std::vector<Eigen::VectorXd> joint_accelerations;
@@ -146,38 +156,30 @@ namespace xpp {
   }
 
   Eigen::MatrixXd
-  InverseKinematicsTalos::ComputeFrameJacobian(Eigen::VectorXd q, int id) const
+  InverseKinematicsTalos::GetFrameJacobian(int id) const
   {
     if (not talos_model_ or not talos_data_) return Eigen::MatrixXd::Zero(1,1);
 
     // Initialize the Jacobian matrix with 0s (needed)
-    Eigen::MatrixXd J(6, talos_model_->nv);
-    J.setZero();
+    Eigen::MatrixXd J(6, talos_model_->nv); J.setZero();
     // Compute the jacobian
-    pinocchio::computeFrameJacobian(*talos_model_, *talos_data_, q, id,
-				    pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED,
-				    J);
+    pinocchio::getFrameJacobian(*talos_model_, *talos_data_, id,
+				pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED,
+				J);
     return J;
   }
 
   Eigen::MatrixXd
-  InverseKinematicsTalos::ComputeFrameJacobianTimeDerivative(
-      Eigen::VectorXd q, Eigen::VectorXd qd, int id) const
+  InverseKinematicsTalos::GetFrameJacobianTimeDerivative(int id) const
   {
     if (not talos_model_ or not talos_data_) return Eigen::MatrixXd::Zero(1,1);
 
-    // Computes the time derivative of the jacobian and saves it in
-    // talos_data_, needed to then calculate the time derivative of
-    // the frame jacobian
-    pinocchio::computeJointJacobiansTimeVariation(*talos_model_, *talos_data_, q, qd);
-
-    // Computes the requested jacobian with respect to the frame id
-    Eigen::MatrixXd dJ(6, talos_model_->nv);
-    dJ.setZero();
+    // Initialize the Jacobian matrix with 0s (needed)
+    Eigen::MatrixXd dJ(6, talos_model_->nv); dJ.setZero();
+    // Compute the jacobian time derivative
     pinocchio::getFrameJacobianTimeVariation(*talos_model_, *talos_data_, id,
 					     pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED,
 					     dJ);
-    // Return the result
     return dJ;
   }
 

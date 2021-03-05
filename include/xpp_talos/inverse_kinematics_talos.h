@@ -80,13 +80,25 @@ namespace xpp {
 
   private:
 
+    /**
+     * @brief Returns the Jacobian of the frame specified.
+     * 
+     * Before calling this method, pinocchio::computeJointJacobians
+     * and pinocchio::updateFramePlacements must be called first.
+     * 
+     */
     Eigen::MatrixXd
-    ComputeFrameJacobian(Eigen::VectorXd q, int id) const;
+    GetFrameJacobian(int id) const;
 
+    /**
+     * @brief Returns the Jacobian time derivative of the frame specified.
+     * 
+     * Before calling this method, pinocchio::computeJointJacobiansTimeVariation
+     * and pinocchio::updateFramePlacements must be called first.
+     * 
+     */
     Eigen::MatrixXd
-    ComputeFrameJacobianTimeDerivative(Eigen::VectorXd q,
-				       Eigen::VectorXd qd,
-				       int id) const;
+    GetFrameJacobianTimeDerivative(int id) const;
     
     TalosLegsInverseKinematics legs;
 
