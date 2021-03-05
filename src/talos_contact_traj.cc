@@ -151,9 +151,8 @@ int main(int argc, char *argv[]) {
       GetJointStates(i, ik, q, qd, qdd);
 
       // Calculate corresponding time for position
-      double time = current_t * 0.01;
       traj.trajectory.points.emplace_back();
-      traj.trajectory.points.back().time_from_start = ros::Duration(time);
+      traj.trajectory.points.back().time_from_start = i->time_from_start;
       // Add values to JointTrajectory
       for (int i = 0; i < 12; ++i) {
 	traj.trajectory.points.back().positions.push_back(q[i]);
