@@ -21,6 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
+find_package(Eigen3 REQUIRED)
+find_package(pinocchio REQUIRED)
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
@@ -124,6 +126,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
+  ${pinocchio_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -139,6 +142,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/inverse_kinematics_talos.cc
   src/talos_cartesian_joint_converter.cc)
+target_link_libraries(${PROJECT_NAME} pinocchio::pinocchio)
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
