@@ -7,6 +7,9 @@
 #include <pinocchio/fwd.hpp>
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/multibody/data.hpp>
+#include <pinocchio/algorithm/center-of-mass.hpp>
+#include <pinocchio/algorithm/center-of-mass-derivatives.hpp>
+
 #include <xpp_vis/inverse_kinematics.h>
 #include <xpp_talos/taloslegs_inverse_kinematics.h>
 
@@ -73,6 +76,30 @@ namespace xpp {
     Joints GetAllJointAccelerations(const EndeffectorsAcc &acc_B,
 				    const Eigen::VectorXd &q,
 				    const Eigen::VectorXd &qd) const;
+
+    /**
+     * @brief      Return the center of mass position 
+     * @param      Current robot state.
+     * @return     Center of mass position
+     */
+    Eigen::Vector3d GetCenterOfMassPosition(const Eigen::VectorXd& q) const;
+    
+    /**
+     * @brief      Return the center of mass velocity
+     * @param      Current robot state.
+     * @return     Center of mass velocity
+     */
+    Eigen::Vector3d GetCenterOfMassVelocity(const Eigen::VectorXd& q,
+					    const Eigen::VectorXd& qd) const;
+
+    /**
+     * @brief      Return the center of mass position and velocity.
+     * @param      Current robot state.
+     */
+    void GetCenterOfMassPositionAndVelocity(const Eigen::VectorXd& q,
+					    const Eigen::VectorXd& qd,
+					    Eigen::Vector3d& com_pos,
+					    Eigen::Vector3d& com_vel) const;
     /**
      * @brief Number of endeffectors (2 feet).
      */

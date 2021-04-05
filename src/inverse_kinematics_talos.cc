@@ -210,4 +210,30 @@ namespace xpp {
     return GetAllJointAccelerations(acc_B, joint_positions, joint_velocities);
   }
 
+  Eigen::Vector3d
+  InverseKinematicsTalos::GetCenterOfMassPosition(const Eigen::VectorXd& q) const
+  {
+    pinocchio::centerOfMass(*talos_model_, *talos_data_, q, false);
+    return talos_data_->com[0];
+  }
+
+  Eigen::Vector3d
+  InverseKinematicsTalos::GetCenterOfMassVelocity(const Eigen::VectorXd& q,
+						  const Eigen::VectorXd& qd) const
+  {
+    pinocchio::centerOfMass(*talos_model_, *talos_data_, q, qd, false);
+    return talos_data_->vcom[0];
+  }
+
+  void
+  InverseKinematicsTalos::GetCenterOfMassPositionAndVelocity(const Eigen::VectorXd& q,
+							     const Eigen::VectorXd& qd,
+							     Eigen::Vector3d& com_pos,
+							     Eigen::Vector3d& com_vel) const
+  {
+    pinocchio::centerOfMass(*talos_model_, *talos_data_, q, qd, false);
+    com_pos = talos_data_->com[0];
+    com_vel = talos_data_->vcom[0];
+  }
+
 } /* namespace xpp */

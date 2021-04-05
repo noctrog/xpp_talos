@@ -13,7 +13,6 @@
 #include <xpp_msgs/RobotStateCartesian.h>
 #include <xpp_states/convert.h>
 
-
 #include <talos_wbc_controller/JointContactTrajectory.h>
 #include <talos_wbc_controller/JointContactTrajectoryContacts.h>
 
@@ -47,6 +46,25 @@ void GetJointStates(const xpp_msgs::RobotStateCartesian::ConstPtr i,
   q   = ik.GetAllJointAngles(ee_B_pos, ee_R).ToVec();
   qd  = ik.GetAllJointVelocities(ee_B_vel, q).ToVec();
   qdd = ik.GetAllJointAccelerations(ee_B_acc, q, qd).ToVec();
+}
+
+void GetCenterOfMassState(const xpp_msgs::RobotStateCartesian::ConstPtr i,
+			  const xpp::InverseKinematicsTalos& ik,
+			  const Eigen::VectorXd& q_joints,
+			  const Eigen::VectorXd& qd_joints,
+			  Eigen::Vector3d& com_pos,
+			  Eigen::Vector3d& com_vel)
+{
+  auto cart = xpp::Convert::ToXpp(*i);
+
+  Eigen::VectorXd q(7 + q_joints.size());
+  q.head(7) << cart.base_.lin.p_, cart.base_.ang.q.normalized().coeffs();
+  q.tail(q_joints.size()) = q_joints;
+  Eigen::VectorXd qd(6 + qd_joints.size());
+  qd.head(7) << cart.base_.lin.v_, cart.base_.ang.w;
+  qd.tail(qd_joints.size()) = qd_joints;
+
+  ik.GetCenterOfMassPositionAndVelocity(q, qd, com_pos, com_vel);
 }
 
 /** 
@@ -90,6 +108,9 @@ void PrepareTrajMsg(talos_wbc_controller::JointContactTrajectory &msg) {
   msg.trajectory.joint_names.emplace_back("leg_right_4_joint");
   msg.trajectory.joint_names.emplace_back("leg_right_5_joint");
   msg.trajectory.joint_names.emplace_back("leg_right_6_joint");
+  msg.trajectory.joint_names.emplace_back("center_of_mass_x");
+  msg.trajectory.joint_names.emplace_back("center_of_mass_y");
+  msg.trajectory.joint_names.emplace_back("center_of_mass_z");
 
   // Contact names
   msg.contact_link_names.emplace_back("left_sole_link");
@@ -148,16 +169,23 @@ int main(int argc, char *argv[]) {
     if (i) {
       // Perform inverse kinematics
       Eigen::VectorXd q, qd, qdd;
+      Eigen::Vector3d com_pos, com_vel;
       GetJointStates(i, ik, q, qd, qdd);
+      GetCenterOfMassState(i, ik, q, qd, com_pos, com_vel);
 
       // Calculate corresponding time for position
       traj.trajectory.points.emplace_back();
       traj.trajectory.points.back().time_from_start = i->time_from_start;
-      // Add values to JointTrajectory
+      // Add joint values to JointTrajectory
       for (int i = 0; i < 12; ++i) {
 	traj.trajectory.points.back().positions.push_back(q[i]);
 	traj.trajectory.points.back().velocities.push_back(qd[i]);
 	traj.trajectory.points.back().accelerations.push_back(qdd[i]);
+      }
+      // Add com values to JointTrajectory
+      for (int i = 0; i < 3; ++i) {
+	traj.trajectory.points.back().positions.push_back(com_pos(i));
+	traj.trajectory.points.back().velocities.push_back(com_vel(i));
       }
 
       // Add values to the contact sequence
@@ -173,10 +201,12 @@ int main(int argc, char *argv[]) {
       // trajectory
       if (current_t == 0) {
 	// Talos initial pose, all zeros
+	auto q  = Eigen::VectorXd::Constant(19, 0.0);
+	auto com_p = ik.GetCenterOfMassPosition(q);
 	init_traj.trajectory.points.emplace_back();
 	init_traj.trajectory.points.back().time_from_start = ros::Duration(0.1);
 	init_traj.trajectory.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-					     0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, q.x(), q.y(), q.z()};
 
 	// Trajectory initial pose
 	init_traj.trajectory.points.emplace_back(traj.trajectory.points.back());
