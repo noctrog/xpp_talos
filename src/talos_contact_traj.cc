@@ -108,9 +108,11 @@ void PrepareTrajMsg(talos_wbc_controller::JointContactTrajectory &msg) {
   msg.trajectory.joint_names.emplace_back("leg_right_4_joint");
   msg.trajectory.joint_names.emplace_back("leg_right_5_joint");
   msg.trajectory.joint_names.emplace_back("leg_right_6_joint");
-  msg.trajectory.joint_names.emplace_back("center_of_mass_x");
-  msg.trajectory.joint_names.emplace_back("center_of_mass_y");
-  msg.trajectory.joint_names.emplace_back("center_of_mass_z");
+
+  // Center of mass trajectory
+  msg.com_trajectory.joint_names.emplace_back("center_of_mass_x");
+  msg.com_trajectory.joint_names.emplace_back("center_of_mass_y");
+  msg.com_trajectory.joint_names.emplace_back("center_of_mass_z");
 
   // Contact names
   msg.contact_link_names.emplace_back("left_sole_link");
@@ -182,10 +184,13 @@ int main(int argc, char *argv[]) {
 	traj.trajectory.points.back().velocities.push_back(qd[i]);
 	traj.trajectory.points.back().accelerations.push_back(qdd[i]);
       }
+      // Center of mass point
+      traj.com_trajectory.points.emplace_back();
+      traj.com_trajectory.points.back().time_from_start = i->time_from_start;
       // Add com values to JointTrajectory
       for (int i = 0; i < 3; ++i) {
-	traj.trajectory.points.back().positions.push_back(com_pos(i));
-	traj.trajectory.points.back().velocities.push_back(com_vel(i));
+	traj.com_trajectory.points.back().positions.push_back(com_pos(i));
+	traj.com_trajectory.points.back().velocities.push_back(com_vel(i));
       }
 
       // Add values to the contact sequence
@@ -201,16 +206,26 @@ int main(int argc, char *argv[]) {
       // trajectory
       if (current_t == 0) {
 	// Talos initial pose, all zeros
-	auto q  = Eigen::VectorXd::Constant(19, 0.0);
-	auto com_p = ik.GetCenterOfMassPosition(q);
+	Eigen::VectorXd q, qd, qdd;
+	Eigen::Vector3d com_pos, com_vel;
+	GetJointStates(i, ik, q, qd, qdd);
+	GetCenterOfMassState(i, ik, q, qd, com_pos, com_vel);
 	init_traj.trajectory.points.emplace_back();
 	init_traj.trajectory.points.back().time_from_start = ros::Duration(0.1);
 	init_traj.trajectory.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-	  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, q.x(), q.y(), q.z()};
+	  0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+	// Interpolate center of mass
+	init_traj.com_trajectory.points.emplace_back();
+	init_traj.com_trajectory.points.back().time_from_start = ros::Duration(0.1);
+	init_traj.com_trajectory.points.back().positions = {com_pos(0), com_pos(1), com_pos(2)};
 
 	// Trajectory initial pose
 	init_traj.trajectory.points.emplace_back(traj.trajectory.points.back());
 	init_traj.trajectory.points.back().time_from_start = ros::Duration(1.0);
+
+	init_traj.com_trajectory.points.emplace_back(traj.com_trajectory.points.back());
+	init_traj.com_trajectory.points.back().time_from_start = ros::Duration(1.0);
 
 	// In the first segment the robot is touching the ground with both feet
 	init_traj.contacts.resize(1);  // Only one segment
