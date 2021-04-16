@@ -153,10 +153,6 @@ int main(int argc, char *argv[]) {
   rosbag::View view(bag_r, rosbag::TopicQuery(topics));
 
   // Prepare trajectory messages
-  // Move Talos to initial pose
-  talos_wbc_controller::JointContactTrajectory init_traj;
-  PrepareTrajMsg(init_traj);
-  // Perform movement
   talos_wbc_controller::JointContactTrajectory traj;
   PrepareTrajMsg(traj);
 
@@ -201,39 +197,6 @@ int main(int argc, char *argv[]) {
 	cont_msg.contacts.at(i) = curr_contacts.at(i);
       cont_msg.time_from_start = traj.trajectory.points.back().time_from_start;
       traj.contacts.push_back(cont_msg);
-
-      // If this is the initial pose, save it in the initialization
-      // trajectory
-      if (current_t == 0) {
-	// Talos initial pose, all zeros
-	Eigen::VectorXd q, qd, qdd;
-	Eigen::Vector3d com_pos, com_vel;
-	GetJointStates(i, ik, q, qd, qdd);
-	GetCenterOfMassState(i, ik, q, qd, com_pos, com_vel);
-	init_traj.trajectory.points.emplace_back();
-	init_traj.trajectory.points.back().time_from_start = ros::Duration(0.1);
-	init_traj.trajectory.points.back().positions = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-	  0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
-	// Interpolate center of mass
-	init_traj.com_trajectory.points.emplace_back();
-	init_traj.com_trajectory.points.back().time_from_start = ros::Duration(0.1);
-	init_traj.com_trajectory.points.back().positions = {com_pos(0), com_pos(1), com_pos(2)};
-
-	// Trajectory initial pose
-	init_traj.trajectory.points.emplace_back(traj.trajectory.points.back());
-	init_traj.trajectory.points.back().time_from_start = ros::Duration(1.0);
-
-	init_traj.com_trajectory.points.emplace_back(traj.com_trajectory.points.back());
-	init_traj.com_trajectory.points.back().time_from_start = ros::Duration(1.0);
-
-	// In the first segment the robot is touching the ground with both feet
-	init_traj.contacts.resize(1);  // Only one segment
-	init_traj.contacts[0].contacts.resize(2); // Two feet per segment
-	init_traj.contacts[0].contacts.at(0) = true;
-	init_traj.contacts[0].contacts.at(1) = true;
-	init_traj.contacts[0].time_from_start = init_traj.trajectory.points.back().time_from_start;
-      }
     }
 
     current_t++;
@@ -244,10 +207,6 @@ int main(int argc, char *argv[]) {
 
   // Wait for publishers to be ready
   ros::Duration(0.2).sleep();
-
-  // Initialize robot
-  pub.publish(init_traj);
-  ros::Duration(1.5).sleep();
 
   // Play optimized trajectory
   pub.publish(traj);
