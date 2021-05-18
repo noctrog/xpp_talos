@@ -60,11 +60,66 @@ void GetCenterOfMassState(const xpp_msgs::RobotStateCartesian::ConstPtr i,
   Eigen::VectorXd q(7 + q_joints.size());
   q.head(7) << cart.base_.lin.p_, cart.base_.ang.q.normalized().coeffs();
   q.tail(q_joints.size()) = q_joints;
+
+  // Pinocchio free floating base velocity is with respect to the base robot frame
+  Eigen::Quaterniond quat;
+  quat.x() = q(3); quat.y() = q(4); quat.z() = q(5); quat.z() = q(6);
+  Eigen::Matrix3d R = quat.normalized().toRotationMatrix().inverse();
+
+  // Convert velocities
+  Eigen::Vector3d twist_linear, twist_angular;
+  twist_linear << cart.base_.lin.v_;
+  twist_angular << cart.base_.ang.w;
+  twist_linear = R * twist_linear;
+  twist_angular = R * twist_angular;
   Eigen::VectorXd qd(6 + qd_joints.size());
-  qd.head(7) << cart.base_.lin.v_, cart.base_.ang.w;
+  qd.head(6) << twist_linear, twist_angular;
   qd.tail(qd_joints.size()) = qd_joints;
 
   ik.GetCenterOfMassPositionAndVelocity(q, qd, com_pos, com_vel);
+}
+
+void GetCenterOfMassState(const xpp_msgs::RobotStateCartesian::ConstPtr i,
+			  const xpp::InverseKinematicsTalos& ik,
+			  const Eigen::VectorXd& q_joints,
+			  const Eigen::VectorXd& qd_joints,
+			  const Eigen::VectorXd& qdd_joints,
+			  Eigen::Vector3d& com_pos,
+			  Eigen::Vector3d& com_vel,
+			  Eigen::Vector3d& com_acc)
+{
+  auto cart = xpp::Convert::ToXpp(*i);
+
+  Eigen::VectorXd q(7 + q_joints.size());
+  q.head(7) << cart.base_.lin.p_, cart.base_.ang.q.normalized().coeffs();
+  q.tail(q_joints.size()) = q_joints;
+
+  // Pinocchio free floating base velocity is with respect to the base robot frame
+  Eigen::Quaterniond quat;
+  quat.x() = q(3); quat.y() = q(4); quat.z() = q(5); quat.z() = q(6);
+  Eigen::Matrix3d R = quat.normalized().toRotationMatrix().inverse();
+
+  // Convert velocities
+  Eigen::Vector3d twist_linear, twist_angular;
+  twist_linear << cart.base_.lin.v_;
+  twist_angular << cart.base_.ang.w;
+  twist_linear = R * twist_linear;
+  twist_angular = R * twist_angular;
+  Eigen::VectorXd qd(6 + qd_joints.size());
+  qd.head(6) << twist_linear, twist_angular;
+  qd.tail(qd_joints.size()) = qd_joints;
+
+  // Convert accelerations
+  Eigen::Vector3d acc_linear, acc_angular;
+  acc_linear << cart.base_.lin.a_;
+  acc_angular << cart.base_.ang.wd;
+  acc_linear = R * acc_linear;
+  acc_angular = R * acc_angular;
+  Eigen::VectorXd qdd(6 + qdd_joints.size());
+  qdd.head(6) << acc_linear, acc_angular;
+  qdd.tail(qdd_joints.size()) = qdd_joints;
+
+  ik.GetCenterOfMassPositionVelocityAcceleration(q, qd, qdd, com_pos, com_vel, com_acc);
 }
 
 /** 
@@ -167,9 +222,9 @@ int main(int argc, char *argv[]) {
     if (i) {
       // Perform inverse kinematics
       Eigen::VectorXd q, qd, qdd;
-      Eigen::Vector3d com_pos, com_vel;
+      Eigen::Vector3d com_pos, com_vel, com_acc;
       GetJointStates(i, ik, q, qd, qdd);
-      GetCenterOfMassState(i, ik, q, qd, com_pos, com_vel);
+      GetCenterOfMassState(i, ik, q, qd, qdd, com_pos, com_vel, com_acc);
 
       // Calculate corresponding time for position
       traj.trajectory.points.emplace_back();
@@ -187,6 +242,7 @@ int main(int argc, char *argv[]) {
       for (int i = 0; i < 3; ++i) {
 	traj.com_trajectory.points.back().positions.push_back(com_pos(i));
 	traj.com_trajectory.points.back().velocities.push_back(com_vel(i));
+	traj.com_trajectory.points.back().accelerations.push_back(com_acc(i));
       }
 
       // Add values to the contact sequence

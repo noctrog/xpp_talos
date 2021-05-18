@@ -236,4 +236,17 @@ namespace xpp {
     com_vel = talos_data_->vcom[0];
   }
 
+  void
+  InverseKinematicsTalos::GetCenterOfMassPositionVelocityAcceleration(const Eigen::VectorXd& q,
+								      const Eigen::VectorXd& qd,
+								      const Eigen::VectorXd& qdd,
+								      Eigen::Vector3d& com_pos,
+								      Eigen::Vector3d& com_vel,
+								      Eigen::Vector3d& com_acc) const
+  {
+    pinocchio::centerOfMass(*talos_model_, *talos_data_, q, qd, qdd, false);
+    com_pos = talos_data_->com[0];
+    com_vel = talos_data_->vcom[0];
+    com_acc = talos_data_->acom[0];
+  }
 } /* namespace xpp */

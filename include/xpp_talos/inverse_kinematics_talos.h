@@ -94,12 +94,20 @@ namespace xpp {
 
     /**
      * @brief      Return the center of mass position and velocity.
-     * @param      Current robot state.
      */
     void GetCenterOfMassPositionAndVelocity(const Eigen::VectorXd& q,
 					    const Eigen::VectorXd& qd,
 					    Eigen::Vector3d& com_pos,
 					    Eigen::Vector3d& com_vel) const;
+    /**
+     * @brief      Return the center of mass position, velocity and acceleration.
+     */
+    void GetCenterOfMassPositionVelocityAcceleration(const Eigen::VectorXd& q,
+						     const Eigen::VectorXd& qd,
+						     const Eigen::VectorXd& qdd,
+						     Eigen::Vector3d& com_pos,
+						     Eigen::Vector3d& com_vel,
+						     Eigen::Vector3d& com_acc) const;
     /**
      * @brief Number of endeffectors (2 feet).
      */
